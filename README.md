@@ -1,18 +1,24 @@
-# book-recapper
-Gives a recap of what you've read so far
+# Book Recapper
+For when you need to get back into a book you abandoned partway.
 
-## How to Run
-1. Install Poetry
-2. Install Just
-3. poetry install
-4. poetry run pre-commit install
-5.
+## How to Run the Application
+todo
+
+## Setting Up the Development Environment
+1. [Install Poetry](https://python-poetry.org/docs/#installation)
+2. Install [just](https://github.com/casey/just)
+3. Install the required dependencies using Poetry:
+
+       poetry install
+
+4. Install the pre-commit hooks:
+
+       poetry run pre-commit install
 
 
 ## Python Dev Stuff
 
 1. Dependency Management
-2. Testing
-3. Linting
-4. Pre-commit hook
-5.
+2. Pre-commit hooks
+3. Testing
+4. Linting
