@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "book-recapper"
+version = "0.1.0"
+description = "Gives a recap of what you've read so far"
+authors = ["Kushal Agrawal <kushalagrawal17@gmail.com>"]
+readme = "README.md"
+license = "GPL-3.0-or-later"
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.9.7 || >3.9.7"
+streamlit = "1.26.0"
+EbookLib = "0.18"
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^3.4.0"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.4.1"
+pytest-mock = "^3.11.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
