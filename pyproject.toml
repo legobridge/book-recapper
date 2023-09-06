@@ -10,6 +10,7 @@ license = "GPL-3.0-or-later"
 python = ">=3.9,<3.9.7 || >3.9.7"
 streamlit = "1.26.0"
 EbookLib = "0.18"
+bs4 = "^0.0.1"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.4.0"

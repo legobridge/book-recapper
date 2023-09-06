@@ -6,12 +6,11 @@ todo
 
 ## Setting Up the Development Environment
 1. [Install Poetry](https://python-poetry.org/docs/#installation)
-2. Install [just](https://github.com/casey/just)
-3. Install the required dependencies using Poetry:
+2. Install the required dependencies using Poetry:
 
        poetry install
 
-4. Install the pre-commit hooks:
+3. Install the pre-commit hooks:
 
        poetry run pre-commit install
 
@@ -20,5 +19,5 @@ todo
 
 1. Dependency Management
 2. Pre-commit hooks
-3. Testing
-4. Linting
+3. Linting
+4. Testing
