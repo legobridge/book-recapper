@@ -41,9 +41,14 @@ class PalmHelper:
 
     @backoff.on_exception(wait_gen=expo, exception=BaseException, max_tries=10)
     def complete_prompt(self, prompt: str, temperature: float = 0.0) -> str:
-        return palm.generate_text(
+        print(f"Completing prompt <{prompt}> using PaLM")
+        completion = palm.generate_text(
             model=self.generation_model.name,
             prompt=prompt,
             temperature=temperature,
             safety_settings=self.SAFETY_SETTINGS,
-        ).result
+        )
+        print(f"Result {completion}")
+        if completion.result is None:
+            return ""
+        return completion.result

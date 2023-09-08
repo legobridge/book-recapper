@@ -1,4 +1,3 @@
-import time
 from typing import List
 
 import pandas as pd
@@ -9,8 +8,16 @@ from chromadb_helper import ChromaDbHelper
 from file_parser import extract_full_text
 from palm_helper import PalmHelper
 
+BM25 = "BM25"
+VECTOR_SEARCH = "Vector Search"
+QUERY_PROMPTS = {
+    BM25: "Provide direct quotes from the last part you read.",
+    VECTOR_SEARCH: "What is the last thing you remember happening? Provide as "
+    "much detail as possible. Direct quotes are preferable. ",
+}
 
-def divide_text_into_chunks(full_text: str, words_per_chunk: int = 500) -> List[str]:
+
+def divide_text_into_chunks(full_text: str, words_per_chunk: int = 200) -> List[str]:
     words = full_text.split()
     num_chunks = len(words) // words_per_chunk
     if len(words) % words_per_chunk != 0:
@@ -23,41 +30,102 @@ def divide_text_into_chunks(full_text: str, words_per_chunk: int = 500) -> List[
     return chunks
 
 
+def summarize_chunks(palm_helper: PalmHelper, chunks: List[str]) -> str:
+    summaries: List[str] = []
+    for chunk in chunks:
+        prompt = (
+            f"Summarize the following excerpt from a book in about 100 words. "
+            f"Do not consider text from table of contents, acknowledgements, "
+            f"preface, etc. "
+            f"and only focus on the core text. "
+            f"Return only the summary and nothing else."
+            f"\nExcerpt: {chunk}. "
+        )
+        completion = palm_helper.complete_prompt(prompt=prompt)
+        summaries.append(completion)
+    return "\n\n".join(summaries)
+
+
+def generate_and_store_embeddings(
+    chromadb_helper: ChromaDbHelper, palm_helper: PalmHelper, text_chunks: List[str]
+):
+    text_chunk_embeddings = []
+    for chunk in tqdm(text_chunks):  # todo: replace with st progress bar
+        text_chunk_embeddings.append(palm_helper.generate_embedding(chunk))
+    chromadb_helper.add_embeddings_to_collection(text_chunk_embeddings, text_chunks)
+
+
 def main():
-    with st.form("Form"):
-        palm_api_key = st.text_input("PaLM API Key")
-        uploaded_file = st.file_uploader("Upload the book", type=["txt", "epub"])
-        user_query = st.text_input(
-            "What is the last thing you remember happening? "
-            "Provide as much details as possible. "
-            "Direct quotes are preferable."
-        )
-        num_candidates = st.slider(
-            "Number of Search Results", min_value=1, max_value=20
-        )
+    # Ask the user for a PaLM API key
+    palm_api_key = st.text_input("PaLM API Key")
 
-        query_submitted = st.form_submit_button("Submit Query")
-        if query_submitted and uploaded_file is not None:
-            palm_helper = PalmHelper(palm_api_key)
-            chromadb_helper = ChromaDbHelper()
-            full_text = extract_full_text(uploaded_file)
-            text_chunks = divide_text_into_chunks(full_text, words_per_chunk=500)
-            text_chunk_embeddings = []
-            for chunk in tqdm(text_chunks):
-                text_chunk_embeddings.append(palm_helper.generate_embedding(chunk))
-                time.sleep(0.2)
-            chromadb_helper.add_embeddings_to_collection(
-                text_chunk_embeddings, text_chunks
+    # Embedding Vector Search or BM25?
+    search_algo = st.radio("Select Search Algorithm", options=[VECTOR_SEARCH, BM25])
+
+    # Book upload widget
+    uploaded_file = st.file_uploader("Upload the book", type=["txt", "epub"])
+
+    if palm_api_key != "" and uploaded_file is not None:
+        # Initialize PaLM Helper
+        palm_helper = PalmHelper(palm_api_key)
+
+        # Extract text
+        full_text = extract_full_text(uploaded_file)
+
+        # If there hasn't been a change in the uploaded file,
+        # don't redo preprocessing
+        file_changed = True
+        if (
+            "full_text" in st.session_state
+            and full_text == st.session_state["full_text"]
+        ):
+            file_changed = False
+
+        if file_changed:
+            st.session_state["full_text"] = full_text
+            st.session_state["text_chunks"] = divide_text_into_chunks(
+                st.session_state["full_text"], words_per_chunk=200
             )
 
-            query_embedding = palm_helper.generate_embedding(user_query)
-            result_ids, result_documents = chromadb_helper.query_collection(
-                query_embedding, num_candidates=num_candidates
+            # Preprocess search corpus
+            if search_algo == VECTOR_SEARCH:
+                st.session_state["chromadb_helper"] = ChromaDbHelper()
+                generate_and_store_embeddings(
+                    st.session_state["chromadb_helper"],
+                    palm_helper,
+                    st.session_state["text_chunks"],
+                )
+            # elif search_algo == BM25:
+            #     # todo
+            else:
+                raise NotImplementedError(
+                    f"Search Algorithm {search_algo} is not implemented."
+                )
+
+        with st.form("Query Form"):
+            text_chunks = st.session_state["text_chunks"]
+            chromadb_helper = st.session_state["chromadb_helper"]
+            user_query = st.text_input(QUERY_PROMPTS[search_algo])
+            num_candidates = st.slider(
+                "Number of Search Results", min_value=1, max_value=20, value=5
             )
-            df = pd.DataFrame.from_dict(
-                {"result_ids": result_ids, "result_documents": result_documents}
-            )
-            st.dataframe(df)
+
+            query_submitted = st.form_submit_button("Submit Query")
+            if query_submitted:
+                query_embedding = palm_helper.generate_embedding(user_query)
+                result_ids, result_documents = chromadb_helper.query_collection(
+                    query_embedding, num_candidates=num_candidates
+                )
+                df = pd.DataFrame.from_dict(
+                    {"result_ids": result_ids, "result_documents": result_documents}
+                )
+                st.dataframe(df)
+                top_segment_id = int(df["result_ids"].iloc[0])
+                combined_text_read_so_far = " ".join(text_chunks[:top_segment_id])
+                bigger_chunks = divide_text_into_chunks(
+                    combined_text_read_so_far, words_per_chunk=1000
+                )
+                st.write(summarize_chunks(palm_helper, bigger_chunks))
 
 
 if __name__ == "__main__":
