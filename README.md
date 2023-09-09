@@ -33,5 +33,7 @@ For when you need to get back into a book you abandoned partway.
 ## Todos
 
 1. Parallelize API calls while being mindful of rate limits.
-2. PaLM seems to be pretty bad at following instructions, try GPT-3.5-turbo
-3. Implement BM25
+2. PaLM seems to be pretty bad at following instructions, replace with GPT-3.5-turbo.
+3. Implement BM25.
+4. Allow user to select the correct chunk before summarizing.
+5. Divide chunks more sensibly (sentences, chapter breaks, etc.).

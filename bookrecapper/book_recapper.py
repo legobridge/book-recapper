@@ -36,7 +36,7 @@ def summarize_chunks(palm_helper: PalmHelper, chunks: List[str]) -> str:
     for i, chunk in enumerate(chunks):
         prompt = (
             f"Summarize the following text enclosed within triple backticks."
-            f"\n```\n{chunk}\n```\n. "
+            f"\n```\n{chunk}\n```\n"
             f"Ignore meta text like table of contents, acknowledgements, "
             f"preface, etc. and only focus on the core content. "
             f"Return only the generated summary and nothing else. "
@@ -51,7 +51,7 @@ def summarize_chunks(palm_helper: PalmHelper, chunks: List[str]) -> str:
     joined_summaries = "\n".join(summaries)
     prompt = (
         f"Summarize the following text within triple backticks. "
-        f"\n```\n{joined_summaries}\n```\n. "
+        f"\n```\n{joined_summaries}\n```\n"
         f"Return only the generated summary and nothing else. "
         f"Refer only to the content in the provided text and "
         f"don't spoil anything from future chapters. "
