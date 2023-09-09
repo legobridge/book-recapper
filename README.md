@@ -29,3 +29,9 @@ For when you need to get back into a book you abandoned partway.
 2. Pre-commit hooks
 3. Linting
 4. Testing
+
+## Todos
+
+1. Parallelize API calls while being mindful of rate limits.
+2. PaLM seems to be pretty bad at following instructions, try GPT-3.5-turbo
+3. Implement BM25

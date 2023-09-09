@@ -2,7 +2,6 @@ from typing import List
 
 import pandas as pd
 import streamlit as st
-from tqdm import tqdm
 
 from chromadb_helper import ChromaDbHelper
 from file_parser import extract_full_text
@@ -32,26 +31,45 @@ def divide_text_into_chunks(full_text: str, words_per_chunk: int = 200) -> List[
 
 def summarize_chunks(palm_helper: PalmHelper, chunks: List[str]) -> str:
     summaries: List[str] = []
-    for chunk in chunks:
+    progress_text = "Summarizing book chunks..."
+    progress_bar = st.progress(0.0, text=progress_text)
+    for i, chunk in enumerate(chunks):
         prompt = (
-            f"Summarize the following excerpt from a book in about 100 words. "
-            f"Do not consider text from table of contents, acknowledgements, "
-            f"preface, etc. "
-            f"and only focus on the core text. "
-            f"Return only the summary and nothing else."
-            f"\nExcerpt: {chunk}. "
+            f"Summarize the following text enclosed within triple backticks."
+            f"\n```\n{chunk}\n```\n. "
+            f"Ignore meta text like table of contents, acknowledgements, "
+            f"preface, etc. and only focus on the core content. "
+            f"Return only the generated summary and nothing else. "
+            f"Refer only to the content in the provided text and "
+            f"don't spoil anything from future chapters. "
+            f"The summary must be between 100-200 words long. "
         )
         completion = palm_helper.complete_prompt(prompt=prompt)
         summaries.append(completion)
-    return "\n\n".join(summaries)
+        progress_bar.progress((i + 1) / len(chunks), text=progress_text)
+
+    joined_summaries = "\n".join(summaries)
+    prompt = (
+        f"Summarize the following text within triple backticks. "
+        f"\n```\n{joined_summaries}\n```\n. "
+        f"Return only the generated summary and nothing else. "
+        f"Refer only to the content in the provided text and "
+        f"don't spoil anything from future chapters. "
+        f"The summary must be around 500 words long. "
+    )
+    completion = palm_helper.complete_prompt(prompt=prompt)
+    return completion
 
 
 def generate_and_store_embeddings(
     chromadb_helper: ChromaDbHelper, palm_helper: PalmHelper, text_chunks: List[str]
 ):
     text_chunk_embeddings = []
-    for chunk in tqdm(text_chunks):  # todo: replace with st progress bar
+    progress_text = "Generating embeddings for book chunks..."
+    progress_bar = st.progress(0.0, text=progress_text)
+    for i, chunk in enumerate(text_chunks):
         text_chunk_embeddings.append(palm_helper.generate_embedding(chunk))
+        progress_bar.progress((i + 1) / len(text_chunks), text=progress_text)
     chromadb_helper.add_embeddings_to_collection(text_chunk_embeddings, text_chunks)
 
 
