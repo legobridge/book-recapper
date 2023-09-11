@@ -21,10 +21,10 @@ class ChromaDbHelper:
 
     def query_collection(
         self, query_embedding: List[float], num_candidates: int
-    ) -> Tuple[List[str], List[str]]:
+    ) -> Tuple[List[int], List[str]]:
         results = self.collection.query(
             query_embeddings=[query_embedding], n_results=num_candidates
         )
-        retrieved_ids = results["ids"][0]
+        retrieved_ids = [int(i) for i in results["ids"][0]]
         retrieved_documents = results["documents"][0]
         return retrieved_ids, retrieved_documents

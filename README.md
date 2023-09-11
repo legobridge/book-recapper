@@ -23,17 +23,9 @@ For when you need to get back into a book you abandoned partway.
        poetry run pre-commit install
 
 
-## Python Dev Stuff
-
-1. Dependency Management
-2. Pre-commit hooks
-3. Linting
-4. Testing
-
 ## Todos
 
-1. Parallelize API calls while being mindful of rate limits.
-2. PaLM seems to be pretty bad at following instructions, replace with GPT-3.5-turbo.
-3. Implement BM25.
-4. Allow user to select the correct chunk before summarizing.
-5. Divide chunks more sensibly (sentences, chapter breaks, etc.).
+1. Allow user to select the correct chunk before summarizing.
+2. Divide chunks more sensibly (sentences, chapter breaks, etc.).
+3. Parallelize API calls while being mindful of rate limits.
+4. PaLM seems to be pretty bad at following instructions and GPT-3.5-turbo seems to be much better. The API for the latter is paid and heavily rate-limited, however. Simply taking the final prompt text from this application and pasting it in ChatGPT gives a much better result.
