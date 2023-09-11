@@ -38,7 +38,6 @@ def summarize_chunks(palm_helper: PalmHelper, chunks: List[str]) -> str:
         prompt = (
             f"Summarize the following text enclosed within triple backticks "
             f"in 100-200 words."
-            f"\n```\n{chunk}\n```\n"
             f"Ignore meta text like table of contents, acknowledgements, "
             f"preface, etc. and only focus on the core content. "
             f"Return only the generated summary and nothing else. "
@@ -47,6 +46,7 @@ def summarize_chunks(palm_helper: PalmHelper, chunks: List[str]) -> str:
             f"Don't talk about the book, only about the "
             f"text provided within triple backticks. "
             f"The summary must be between 100-200 words long. "
+            f"\n```\n{chunk}\n```\n"
         )
         completion = palm_helper.complete_prompt(prompt=prompt)
         summaries.append(completion)
@@ -56,13 +56,14 @@ def summarize_chunks(palm_helper: PalmHelper, chunks: List[str]) -> str:
     prompt = (
         f"Summarize the following text within triple backticks "
         f"in around 500 words. "
-        f"\n```\n{joined_summaries}\n```\n"
         f"Return only the generated summary and nothing else. "
         f"Refer only to the content in the provided text and "
         f"don't spoil anything from future chapters. "
         f"Don't talk about the book, only about the "
         f"text provided within triple backticks. "
-        f"The summary must be around 500 words long. "
+        f"The summary must be around 500 words long and "
+        f"include everything that happens below."
+        f"\n```\n{joined_summaries}\n```\n"
     )
     completion = palm_helper.complete_prompt(prompt=prompt)
     return completion
